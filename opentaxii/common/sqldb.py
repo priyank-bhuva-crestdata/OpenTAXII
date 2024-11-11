@@ -28,6 +28,7 @@ class BaseSQLDatabaseAPI:
             )
         # Use same db object in auth and taxii persistent to keep exact track of connection pools
         self.db = selected_db
+        self.db.Model = self.db.extend_base_model(self.BASEMODEL)
         if create_tables:
             self.db.create_all_tables()
 
