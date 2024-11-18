@@ -869,13 +869,15 @@ class Taxii2SQLDatabaseAPI(BaseSQLDatabaseAPI, OpenTAXII2PersistenceAPI):
         match_version: Optional[List[str]] = None,
         match_spec_version: Optional[List[str]] = None,
         ordered: Optional[bool] = True,
+        support_versioning: bool = True,
     ) -> Tuple[Query, bool]:
         query = self._objects_query(collection_id, ordered)
         query = self._apply_added_after(query, added_after)
         query = self._apply_next_kwargs(query, next_kwargs)
         query = self._apply_match_id(query, match_id)
         query = self._apply_match_type(query, match_type)
-        query = self._apply_match_version(query, collection_id, match_version)
+        if support_versioning or match_version:
+            query = self._apply_match_version(query, collection_id, match_version)
         query = self._apply_match_spec_version(query, match_spec_version)
         query, more = self._apply_limit(query, limit)
         return query, more
@@ -932,6 +934,7 @@ class Taxii2SQLDatabaseAPI(BaseSQLDatabaseAPI, OpenTAXII2PersistenceAPI):
         match_type: Optional[List[str]] = None,
         match_version: Optional[List[str]] = None,
         match_spec_version: Optional[List[str]] = None,
+        support_versioning: bool = True,
     ) -> Tuple[List[entities.STIXObject], bool, Optional[str]]:
         query, more = self._filtered_objects_query(
             collection_id=collection_id,
@@ -942,6 +945,7 @@ class Taxii2SQLDatabaseAPI(BaseSQLDatabaseAPI, OpenTAXII2PersistenceAPI):
             match_type=match_type,
             match_version=match_version,
             match_spec_version=match_spec_version,
+            support_versioning=support_versioning,
         )
         items = query.all()
         if more:
@@ -968,7 +972,7 @@ class Taxii2SQLDatabaseAPI(BaseSQLDatabaseAPI, OpenTAXII2PersistenceAPI):
         )
 
     def add_objects(
-        self, api_root_id: str, collection_id: str, objects: List[Dict]
+        self, api_root_id: str, collection_id: str, objects: List[Dict], support_versioning: bool = True
     ) -> entities.Job:
         job = taxii2models.Job(
             api_root_id=api_root_id,
@@ -991,7 +995,12 @@ class Taxii2SQLDatabaseAPI(BaseSQLDatabaseAPI, OpenTAXII2PersistenceAPI):
                         taxii2models.STIXObject.id == obj["id"],
                         taxii2models.STIXObject.collection_id == collection_id,
                     ).order_by(taxii2models.STIXObject.date_added.desc()).first()
-            if (not stored_object) or (stored_object.serialized_data != obj):
+            if stored_object and (stored_object.serialized_data != obj) and (version > stored_object.version) and not support_versioning:
+                stored_object.serialized_data = obj
+                stored_object.date_added=datetime.datetime.now(datetime.timezone.utc)
+                stored_object.version=version
+                self.db.session.add(stored_object)
+            elif not stored_object or (stored_object and (stored_object.serialized_data != obj) and support_versioning):
                 self.db.session.add(
                     taxii2models.STIXObject(
                         id=obj["id"],
@@ -1029,6 +1038,7 @@ class Taxii2SQLDatabaseAPI(BaseSQLDatabaseAPI, OpenTAXII2PersistenceAPI):
         next_kwargs: Optional[Dict] = None,
         match_version: Optional[List[str]] = None,
         match_spec_version: Optional[List[str]] = None,
+        support_versioning: bool = True,
     ) -> Tuple[Optional[List[entities.STIXObject]], bool, Optional[str]]:
         """
         Get single object from database.
@@ -1056,6 +1066,7 @@ class Taxii2SQLDatabaseAPI(BaseSQLDatabaseAPI, OpenTAXII2PersistenceAPI):
             match_id=[object_id],
             match_version=match_version,
             match_spec_version=match_spec_version,
+            support_versioning=support_versioning,
         )
         items = query.all()
         if more:

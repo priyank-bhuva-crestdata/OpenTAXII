@@ -38,6 +38,7 @@ taxii2:
       create_tables: yes
   default_pagination_limit: 10
   max_pagination_limit: 1000
+  support_versioning: True
 
 logging:
   opentaxii: info

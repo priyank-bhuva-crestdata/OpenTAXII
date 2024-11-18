@@ -658,6 +658,7 @@ class TAXII2Server(BaseTAXIIServer):
             objects, more, next_param = self.persistence.get_objects(
                 api_root_id=api_root_id,
                 collection_id_or_alias=collection_id_or_alias,
+                support_versioning=self.config("support_versioning") or True,
                 **filter_params,
             )
         except (DoesNotExistError, NoReadPermission):
@@ -701,6 +702,7 @@ class TAXII2Server(BaseTAXIIServer):
                 api_root_id=api_root_id,
                 collection_id_or_alias=collection_id_or_alias,
                 data=request.get_json(),
+                support_versioning=self.config.get("support_versioning") or True,
             )
         except (DoesNotExistError, NoWritePermission):
             if context.account is None:
@@ -738,6 +740,7 @@ class TAXII2Server(BaseTAXIIServer):
                 api_root_id=api_root_id,
                 collection_id_or_alias=collection_id_or_alias,
                 object_id=object_id,
+                support_versioning=self.config("support_versioning") or True,
                 **filter_params,
             )
         except (DoesNotExistError, NoReadPermission):

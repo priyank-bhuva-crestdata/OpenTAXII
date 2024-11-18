@@ -478,6 +478,7 @@ class Taxii2PersistenceManager(BasePersistenceManager):
         match_type: Optional[List[str]] = None,
         match_version: Optional[List[str]] = None,
         match_spec_version: Optional[List[str]] = None,
+        support_versioning: bool = True,
     ) -> Tuple[List[STIXObject], bool, Optional[str]]:
         collection = self.get_collection(
             api_root_id=api_root_id, collection_id_or_alias=collection_id_or_alias
@@ -493,6 +494,7 @@ class Taxii2PersistenceManager(BasePersistenceManager):
             match_type=match_type,
             match_version=match_version,
             match_spec_version=match_spec_version,
+            support_versioning=support_versioning,
         )
 
     def add_objects(
@@ -500,6 +502,7 @@ class Taxii2PersistenceManager(BasePersistenceManager):
         api_root_id: str,
         collection_id_or_alias: str,
         data: Dict,
+        support_versioning: bool = True
     ) -> Job:
         collection = self.get_collection(
             api_root_id=api_root_id, collection_id_or_alias=collection_id_or_alias
@@ -510,6 +513,7 @@ class Taxii2PersistenceManager(BasePersistenceManager):
             api_root_id=api_root_id,
             collection_id=collection.id,
             objects=data["objects"],
+            support_versioning=support_versioning
         )
         return job
 
@@ -523,6 +527,7 @@ class Taxii2PersistenceManager(BasePersistenceManager):
         next_kwargs: Optional[Dict] = None,
         match_version: Optional[List[str]] = None,
         match_spec_version: Optional[List[str]] = None,
+        support_versioning: bool = True,
     ) -> Tuple[List[STIXObject], bool, Optional[str]]:
         collection = self.get_collection(
             api_root_id=api_root_id, collection_id_or_alias=collection_id_or_alias
@@ -537,6 +542,7 @@ class Taxii2PersistenceManager(BasePersistenceManager):
             next_kwargs=next_kwargs,
             match_version=match_version,
             match_spec_version=match_spec_version,
+            support_versioning=support_versioning,
         )
         if versions is None:
             raise DoesNotExistError()

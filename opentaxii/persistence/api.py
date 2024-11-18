@@ -331,10 +331,11 @@ class OpenTAXII2PersistenceAPI:
         match_type: Optional[List[str]] = None,
         match_version: Optional[List[str]] = None,
         match_spec_version: Optional[List[str]] = None,
+        support_versioning: bool = True,
     ) -> Tuple[List[STIXObject], bool, Optional[str]]:
         raise NotImplementedError
 
-    def add_objects(self, api_root_id: str, collection_id: str, objects: List[Dict]) -> Job:
+    def add_objects(self, api_root_id: str, collection_id: str, objects: List[Dict], support_versioning: bool) -> Job:
         raise NotImplementedError
 
     def get_object(
@@ -346,6 +347,7 @@ class OpenTAXII2PersistenceAPI:
         next_kwargs: Optional[Dict] = None,
         match_version: Optional[List[str]] = None,
         match_spec_version: Optional[List[str]] = None,
+        support_versioning: bool = True,
     ) -> Tuple[Optional[List[STIXObject]], bool, Optional[str]]:
         """
         Get single object from database.
